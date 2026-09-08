@@ -1,0 +1,171 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "briefings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "sentiment",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "captured_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "quotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "captured_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "articles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "found_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "monitors",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "targets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "captured_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "filings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "filed_date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "captured_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "questions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "asked_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "questions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "kind",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "asked_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "alerts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "received_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "monitor_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ticker",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "event_date",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,46 @@
+# Where an alert goes once it fires.
+#
+# Without this file the rules in `alerts.yml` evaluate correctly, turn red on
+# the dashboard, and notify nobody: Grafana routes every alert to the default
+# receiver, and a stock Grafana has none configured. An alert nobody receives
+# is a dashboard panel with extra steps, which is what this product had.
+#
+# The webhook target is the app's own `/hooks/grafana`, so a fired alert is
+# recorded in the same history as everything else and appears in the product
+# rather than only in Grafana. The URL is read from the environment, so the
+# same file works for a local Grafana pointing at localhost and for a hosted
+# one pointing at Cloud Run.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: ticker-room-app
+    receivers:
+      - uid: ticker-room-webhook
+        type: webhook
+        settings:
+          url: ${TICKERROOM_ALERT_WEBHOOK}
+          httpMethod: POST
+          # The receiving endpoint is public. It checks this header when
+          # TICKERROOM_ALERT_TOKEN is set on the app, and stays open when it is
+          # not, so a local Grafana needs no configuration.
+          headers:
+            x-tickerroom-token: ${TICKERROOM_ALERT_TOKEN}
+          # Grafana's default payload carries the rule, its labels and the
+          # values that tripped it, which is everything the app needs to
+          # record what fired and why.
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: ticker-room-app
+    # Group by ticker as well as rule: two tickers tripping the same rule are
+    # two things a reader wants to see, not one notification about "a target
+    # cut" with no company on it.
+    group_by: [alertname, ticker]
+    # Alerting is the interrupt, so the first notification goes out promptly.
+    # Repeats are slow: a dilution filing is still true tomorrow and does not
+    # need to be said hourly.
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 12h

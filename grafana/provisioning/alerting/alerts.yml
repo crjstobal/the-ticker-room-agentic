@@ -1,0 +1,176 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: ticker-room
+    folder: The Ticker Room
+    interval: 5m
+    rules:
+      # An analyst moving their own target is a stronger statement than any
+      # single number: the same person changed their mind with the company in
+      # full view. Cuts and raises are separate rules so the message can say
+      # which happened.
+      - uid: target-cut
+        title: Analyst cut a price target
+        condition: CUT
+        for: 0s
+        execErrState: OK
+        noDataState: OK
+        annotations:
+          summary: >-
+            A research firm lowered its price target on a watchlist ticker by
+            more than 15%.
+        labels:
+          severity: warning
+          kind: target-cut
+        isPaused: false
+        data:
+          - refId: WORST
+            relativeTimeRange: {from: 2592000, to: 0}
+            datasourceUid: tickerroom
+            model:
+              refId: WORST
+              queryType: table
+              rawQueryText: &cut >-
+                SELECT COALESCE(MIN(change_pct), 0) AS value FROM revisions
+                WHERE direction = 'cut'
+              queryText: *cut
+          - refId: CUT
+            datasourceUid: __expr__
+            model:
+              refId: CUT
+              type: math
+              expression: $WORST < -15
+
+      - uid: target-raise
+        title: Analyst raised a price target
+        condition: RAISE
+        for: 0s
+        execErrState: OK
+        noDataState: OK
+        annotations:
+          summary: >-
+            A research firm lifted its price target on a watchlist ticker by
+            more than 15%.
+        labels:
+          severity: info
+          kind: target-raise
+        isPaused: false
+        data:
+          - refId: BEST
+            relativeTimeRange: {from: 2592000, to: 0}
+            datasourceUid: tickerroom
+            model:
+              refId: BEST
+              queryType: table
+              rawQueryText: &raise >-
+                SELECT COALESCE(MAX(change_pct), 0) AS value FROM revisions
+                WHERE direction = 'raised'
+              queryText: *raise
+          - refId: RAISE
+            datasourceUid: __expr__
+            model:
+              refId: RAISE
+              type: math
+              expression: $BEST > 15
+
+      # A stock trading far below where every analyst says it should be is
+      # worth surfacing once, not repeatedly.
+      - uid: consensus-gap
+        title: Price far below analyst consensus
+        condition: GAP
+        for: 0s
+        execErrState: OK
+        noDataState: OK
+        annotations:
+          summary: >-
+            A watchlist ticker trades more than 50% below the average published
+            price target.
+        labels:
+          severity: info
+          kind: consensus-gap
+        isPaused: true
+        data:
+          - refId: UPSIDE
+            relativeTimeRange: {from: 2592000, to: 0}
+            datasourceUid: tickerroom
+            model:
+              refId: UPSIDE
+              queryType: table
+              rawQueryText: &gap >-
+                SELECT COALESCE(MAX(upside_pct), 0) AS value FROM target_consensus
+              queryText: *gap
+          - refId: GAP
+            datasourceUid: __expr__
+            model:
+              refId: GAP
+              type: math
+              expression: $UPSIDE > 50
+
+      # An insider selling, or the company registering new shares, is a dated
+      # fact rather than a drifting trend. That is what makes it alertable at
+      # the moment it appears.
+      - uid: insider-sell
+        title: Insider sold shares
+        condition: SOLD
+        for: 0s
+        execErrState: OK
+        noDataState: OK
+        annotations:
+          summary: >-
+            An officer or director of a watchlist company reported a share sale
+            on a Form 4.
+        labels:
+          severity: warning
+          kind: insider-sell
+        isPaused: false
+        data:
+          - refId: COUNT
+            relativeTimeRange: {from: 604800, to: 0}
+            datasourceUid: tickerroom
+            model:
+              refId: COUNT
+              queryType: table
+              rawQueryText: &sold >-
+                SELECT COUNT(*) AS value FROM filings_now
+                WHERE kind = 'insider-sell'
+                AND filed_date >= date('now', '-7 day')
+              queryText: *sold
+          - refId: SOLD
+            datasourceUid: __expr__
+            model:
+              refId: SOLD
+              type: math
+              expression: $COUNT > 0
+
+      - uid: dilution
+        title: Share dilution filed
+        condition: DILUTED
+        for: 0s
+        execErrState: OK
+        noDataState: OK
+        annotations:
+          summary: >-
+            A watchlist company registered or priced new shares (S-3, S-1 or
+            424B5), which dilutes existing holders.
+        labels:
+          severity: warning
+          kind: dilution
+        isPaused: false
+        data:
+          - refId: COUNT
+            relativeTimeRange: {from: 2592000, to: 0}
+            datasourceUid: tickerroom
+            model:
+              refId: COUNT
+              queryType: table
+              rawQueryText: &dil >-
+                SELECT COUNT(*) AS value FROM filings_now
+                WHERE kind = 'dilution'
+                AND filed_date >= date('now', '-30 day')
+              queryText: *dil
+          - refId: DILUTED
+            datasourceUid: __expr__
+            model:
+              refId: DILUTED
+              type: math
+              expression: $COUNT > 0

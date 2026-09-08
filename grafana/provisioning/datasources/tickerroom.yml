@@ -1,0 +1,15 @@
+apiVersion: 1
+datasources:
+  # Reads a SQLite projection written by src/core/metrics_export.py, so one
+  # dashboard works whether the history lives in SQLite or Firestore.
+  - name: TickerRoom
+    type: frser-sqlite-datasource
+    uid: tickerroom
+    access: proxy
+    isDefault: true
+    jsonData:
+      # Set by scripts/serve.sh from the repo root, so this file works on a
+      # clone rather than only on the machine it was written on. An absolute
+      # developer path here is why the dashboard used to come up empty for
+      # anyone else.
+      path: ${TICKERROOM_METRICS_DB}

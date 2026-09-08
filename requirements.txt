@@ -1,0 +1,21 @@
+boto3>=1.34
+yfinance>=1.6
+fastapi>=0.115
+uvicorn[standard]>=0.30
+google-auth>=2.30
+python-multipart>=0.0.9
+# Pinned, not floating. `>=` here meant a rebuild silently resolved to whatever
+# was current, so the deployed artefact was never the one that had been tested.
+#
+# `google-api-core` 2.35.0 sends the default database id URL-encoded, and every
+# Firestore call in the deployed service failed with
+# `INVALID_ARGUMENT: Invalid database id %28default%29` — in code nobody had
+# touched. Bisected against the real database: 2.34.0 reads fine, 2.35.0 fails,
+# with the firestore client and protobuf held constant. Firestore itself was
+# never the problem; it was pulled in as a transitive dependency.
+#
+# Invisible locally, twice over: local runs use SQLite and never build a
+# Firestore client, and this environment still had the older api-core.
+google-cloud-firestore==2.28.1
+google-api-core==2.34.0
+google-cloud-aiplatform>=1.60

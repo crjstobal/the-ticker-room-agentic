@@ -1,0 +1,385 @@
+{
+  "uid": "tickerroom-coverage",
+  "title": "The Ticker Room",
+  "tags": [
+    "tickerroom"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "1m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Analyst consensus vs price",
+      "description": "Where each ticker trades against the average published target.",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "tickerroom"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "upside %"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "#8e8e93",
+                      "value": -5
+                    },
+                    {
+                      "color": "green",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*(price|target).*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "tickerroom"
+          },
+          "queryType": "table",
+          "rawQueryText": "SELECT ticker, spot AS 'price now', avg_target AS 'avg target', low_target AS 'lowest', high_target AS 'highest', n_firms AS 'firms', upside_pct AS 'upside %' FROM target_consensus WHERE ticker LIKE '$ticker' ORDER BY upside_pct DESC",
+          "queryText": "SELECT ticker, spot AS 'price now', avg_target AS 'avg target', low_target AS 'lowest', high_target AS 'highest', n_firms AS 'firms', upside_pct AS 'upside %' FROM target_consensus WHERE ticker LIKE '$ticker' ORDER BY upside_pct DESC",
+          "timeColumns": []
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "barchart",
+      "title": "Price targets by firm",
+      "description": "One bar per research firm's most recent published target.",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "tickerroom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "firm",
+        "orientation": "horizontal",
+        "showValue": "always",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "tickerroom"
+          },
+          "queryType": "table",
+          "rawQueryText": "SELECT firm, target_price FROM targets_now WHERE ticker LIKE '$ticker' ORDER BY target_price DESC",
+          "queryText": "SELECT firm, target_price FROM targets_now WHERE ticker LIKE '$ticker' ORDER BY target_price DESC",
+          "timeColumns": []
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Target revisions \u2014 who changed their mind",
+      "description": "A firm moving its own target. This is what the alert fires on.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "tickerroom"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "change %"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "#8e8e93",
+                      "value": -10
+                    },
+                    {
+                      "color": "green",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "tickerroom"
+          },
+          "queryType": "table",
+          "rawQueryText": "SELECT date, ticker, firm, old_price AS 'from', new_price AS 'to', change_pct AS 'change %', direction FROM revisions WHERE ticker LIKE '$ticker' ORDER BY ts DESC",
+          "queryText": "SELECT date, ticker, firm, old_price AS 'from', new_price AS 'to', change_pct AS 'change %', direction FROM revisions WHERE ticker LIKE '$ticker' ORDER BY ts DESC",
+          "timeColumns": []
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "type": "barchart",
+      "title": "Articles per day",
+      "description": "A day that breaks well above a ticker's own baseline is a news spike.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "tickerroom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "day",
+        "stacking": "normal",
+        "showValue": "auto",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "tickerroom"
+          },
+          "queryType": "table",
+          "rawQueryText": "SELECT day, ticker, articles FROM coverage WHERE ticker LIKE '$ticker' ORDER BY day",
+          "queryText": "SELECT day, ticker, articles FROM coverage WHERE ticker LIKE '$ticker' ORDER BY day",
+          "timeColumns": []
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "Reddit sentiment (-100 bearish / +100 bullish)",
+      "description": "Retail sentiment scored from Reddit threads reached through Parallel.",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "tickerroom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": -100,
+          "max": 100,
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#8e8e93",
+                "value": -20
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^score$/",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "tickerroom"
+          },
+          "queryType": "table",
+          "rawQueryText": "SELECT ticker, score FROM sentiment_now WHERE ticker LIKE '$ticker' ORDER BY score DESC",
+          "queryText": "SELECT ticker, score FROM sentiment_now WHERE ticker LIKE '$ticker' ORDER BY score DESC",
+          "timeColumns": []
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Latest quotes",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "tickerroom"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "tickerroom"
+          },
+          "queryType": "table",
+          "rawQueryText": "SELECT ticker, spot, change_pct AS 'change %' FROM quotes_now WHERE ticker LIKE '$ticker' ORDER BY ticker",
+          "queryText": "SELECT ticker, spot, change_pct AS 'change %' FROM quotes_now WHERE ticker LIKE '$ticker' ORDER BY ticker",
+          "timeColumns": []
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "ticker",
+        "label": "Ticker",
+        "type": "query",
+        "datasource": {
+          "type": "frser-sqlite-datasource",
+          "uid": "tickerroom"
+        },
+        "query": "SELECT DISTINCT ticker FROM quotes_now ORDER BY ticker",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": "%",
+        "multi": false,
+        "current": {}
+      }
+    ]
+  }
+}

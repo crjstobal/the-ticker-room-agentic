@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.log
+.DS_Store
+.cache/
+data/*.db
+data/
+
+# Private working notes: strategy, internal infrastructure reports. Not code,
+# and not for a public repo.
+CLAUDE.md
+docs/informe-earnings-automatizacion.txt
+.pytest_cache/
+
+# Machine-local secret-store names. Never committed.
+scripts/local.env

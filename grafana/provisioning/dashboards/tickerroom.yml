@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: TickerRoom
+    folder: The Ticker Room
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      # Set by scripts/serve.sh from the repo root. An absolute developer
+      # path here means the dashboards load on exactly one machine.
+      path: ${TICKERROOM_DASHBOARDS}
